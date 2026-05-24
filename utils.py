@@ -7,11 +7,17 @@
 import duckdb
 import pandas as pd
 import streamlit as st
+import os
 
 
 # ── Load data (cached so it only loads once) ───────────────
 @st.cache_data
 def load_data():
+    if not os.path.exists('vaultx_data.csv'):
+        st.info("⏳ First time setup — generating VaultX dataset (1,000,000 rows). This takes about 60 seconds...")
+        import generate_data
+        st.success("✅ Dataset generated successfully!")
+        st.rerun()
     df = pd.read_csv('vaultx_data.csv', parse_dates=['date'])
     return df
 
@@ -63,34 +69,28 @@ def render_filters(df: pd.DataFrame):
                 border-radius: 12px;
                 padding: 16px 20px;
             }
-            /* Filter labels */
             div[data-testid="stForm"] label p {
                 color: #0F172A !important;
                 font-size: 13px !important;
                 font-weight: 600 !important;
             }
-            /* Multiselect container */
             div[data-testid="stForm"] .stMultiSelect [data-baseweb="select"] {
                 background-color: #F8FAFC !important;
                 border-color: #E2E8F0 !important;
             }
-            /* Selected value pills */
             div[data-testid="stForm"] .stMultiSelect span[data-baseweb="tag"] {
                 background-color: #EFF6FF !important;
                 border: 1px solid #BFDBFE !important;
             }
-            /* Pill text */
             div[data-testid="stForm"] .stMultiSelect span[data-baseweb="tag"] span {
                 color: #1D4ED8 !important;
             }
-            /* X button on pill */
             div[data-testid="stForm"] .stMultiSelect span[data-baseweb="tag"] button {
                 color: #1D4ED8 !important;
                 background: transparent !important;
                 margin-top: 0 !important;
                 width: auto !important;
             }
-            /* Apply button */
             div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
                 background-color: #3B82F6 !important;
                 color: white !important;

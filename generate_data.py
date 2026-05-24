@@ -1,3 +1,8 @@
+# ══════════════════════════════════════════════════════════
+# VaultX KPI Intelligence Dashboard — Data Generator
+# Author: Ajinkya Kadam
+# ══════════════════════════════════════════════════════════
+
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -53,7 +58,7 @@ NPS_PROFILES = {
     'Insurance':   {'mean': 4.5, 'std': 2.5},
 }
 
-# ── DAU probability per product (Payments most active, Insurance least)
+# ── DAU probability per product
 DAU_PROBS = {
     'Payments':    0.75,
     'Investments': 0.50,
@@ -61,7 +66,7 @@ DAU_PROBS = {
     'Insurance':   0.10,
 }
 
-# ── Regional revenue multipliers (North best, International worst)
+# ── Regional revenue multipliers
 REGION_MULTIPLIERS = {
     'North':         1.35,
     'South':         1.20,
@@ -70,7 +75,7 @@ REGION_MULTIPLIERS = {
     'International': 0.60,
 }
 
-# ── Churn risk per channel (Paid highest, Organic lowest)
+# ── Churn risk per channel
 CHURN_RISK_PROBS = {
     'Paid':      0.35,
     'App Store': 0.25,
@@ -78,15 +83,13 @@ CHURN_RISK_PROBS = {
     'Organic':   0.08,
 }
 
-# ── Seasonal multipliers per month (peaks in Oct-Dec)
+# ── Seasonal multipliers per month
 SEASONAL = {
     1: 0.75, 2: 0.78, 3: 0.85,
     4: 0.90, 5: 0.92, 6: 0.95,
     7: 0.97, 8: 1.00, 9: 1.05,
     10: 1.15, 11: 1.25, 12: 1.35
 }
-
-print("⏳ Generating 1,000,000 rows of VaultX data...")
 
 # ── Base columns ───────────────────────────────────────────
 transaction_ids = [
@@ -95,16 +98,14 @@ transaction_ids = [
 ]
 
 user_ids = ['USR' + str(random.randint(10000, 999999)) for _ in range(N_ROWS)]
-
-dates = [START_DATE + timedelta(days=random.randint(0, DATE_RANGE)) for _ in range(N_ROWS)]
-
+dates    = [START_DATE + timedelta(days=random.randint(0, DATE_RANGE)) for _ in range(N_ROWS)]
 products = np.random.choice(PRODUCTS, N_ROWS, p=[0.40, 0.25, 0.20, 0.15])
 regions  = np.random.choice(REGIONS,  N_ROWS, p=[0.25, 0.22, 0.20, 0.18, 0.15])
 channels = np.random.choice(CHANNELS, N_ROWS, p=[0.35, 0.30, 0.20, 0.15])
 devices  = np.random.choice(DEVICES,  N_ROWS, p=[0.65, 0.25, 0.10])
 age_groups = np.random.choice(AGE_GROUPS, N_ROWS, p=[0.28, 0.35, 0.22, 0.15])
 
-# ── Revenue with regional multiplier + seasonality ─────────
+# ── Revenue ────────────────────────────────────────────────
 revenue = np.array([
     max(10, np.random.normal(
         REVENUE_PROFILES[p]['mean'], REVENUE_PROFILES[p]['std']
@@ -150,13 +151,13 @@ mau_flags = np.array([
 # ── ARPU ───────────────────────────────────────────────────
 arpu = (revenue * np.random.uniform(0.8, 1.2, N_ROWS)).round(2)
 
-# ── New user flag (newer dates = more new users) ───────────
+# ── New user flag ──────────────────────────────────────────
 is_new_user = np.array([
     np.random.random() < (0.45 - (d.year - 2024) * 0.08)
     for d in dates
 ])
 
-# ── Repeat transaction (inverse of new user + product factor)
+# ── Repeat transaction ─────────────────────────────────────
 repeat_probs = {
     'Payments':    0.72,
     'Investments': 0.55,
@@ -168,7 +169,7 @@ is_repeat_transaction = np.array([
     for new, p in zip(is_new_user, products)
 ])
 
-# ── Session duration (Mobile shorter, Desktop longer) ──────
+# ── Session duration ───────────────────────────────────────
 session_base = {'Mobile': 180, 'Desktop': 420, 'Tablet': 300}
 session_duration = np.array([
     max(10, int(np.random.normal(session_base[d], session_base[d] * 0.5)))
@@ -182,7 +183,7 @@ churn_risk = np.array([
 ])
 
 # ── Funnel stage ───────────────────────────────────────────
-funnel_probs = [0.30, 0.28, 0.22, 0.20]
+funnel_probs  = [0.30, 0.28, 0.22, 0.20]
 funnel_stages = np.random.choice(
     ['Install', 'Registration', 'First Transaction', 'Repeat Transaction'],
     N_ROWS, p=funnel_probs
@@ -190,38 +191,39 @@ funnel_stages = np.random.choice(
 
 # ── Build DataFrame ────────────────────────────────────────
 df = pd.DataFrame({
-    'transaction_id':       transaction_ids,
-    'user_id':              user_ids,
-    'date':                 dates,
-    'product':              products,
-    'region':               regions,
-    'channel':              channels,
-    'device':               devices,
-    'age_group':            age_groups,
-    'revenue':              revenue,
-    'spend':                spend,
-    'roas':                 roas,
-    'arpu':                 arpu,
-    'nps_score':            nps_scores,
-    'dau_flag':             dau_flags,
-    'mau_flag':             mau_flags,
-    'is_new_user':          is_new_user,
+    'transaction_id':        transaction_ids,
+    'user_id':               user_ids,
+    'date':                  dates,
+    'product':               products,
+    'region':                regions,
+    'channel':               channels,
+    'device':                devices,
+    'age_group':             age_groups,
+    'revenue':               revenue,
+    'spend':                 spend,
+    'roas':                  roas,
+    'arpu':                  arpu,
+    'nps_score':             nps_scores,
+    'dau_flag':              dau_flags,
+    'mau_flag':              mau_flags,
+    'is_new_user':           is_new_user,
     'is_repeat_transaction': is_repeat_transaction,
-    'session_duration':     session_duration,
-    'churn_risk':           churn_risk,
-    'funnel_stage':         funnel_stages,
+    'session_duration':      session_duration,
+    'churn_risk':            churn_risk,
+    'funnel_stage':          funnel_stages,
 })
 
 # ── Save ───────────────────────────────────────────────────
 df.to_csv('vaultx_data.csv', index=False)
 
-print("✅ Done! vaultx_data.csv created successfully")
-print(f"   Rows    : {len(df):,}")
-print(f"   Columns : {len(df.columns)}")
-print(f"   Date range: {df['date'].min()} → {df['date'].max()}")
-print(f"\n📊 Revenue by Product:")
-print(df.groupby('product')['revenue'].mean().round(0).sort_values(ascending=False))
-print(f"\n📊 ROAS by Channel:")
-print(df.groupby('channel')['roas'].mean().round(2).sort_values(ascending=False))
-print(f"\n📊 Avg NPS by Product:")
-print(df.groupby('product')['nps_score'].mean().round(1).sort_values(ascending=False))
+if __name__ == '__main__':
+    print("✅ Done! vaultx_data.csv created successfully")
+    print(f"   Rows    : {len(df):,}")
+    print(f"   Columns : {len(df.columns)}")
+    print(f"   Date range: {df['date'].min()} → {df['date'].max()}")
+    print(f"\n📊 Revenue by Product:")
+    print(df.groupby('product')['revenue'].mean().round(0).sort_values(ascending=False))
+    print(f"\n📊 ROAS by Channel:")
+    print(df.groupby('channel')['roas'].mean().round(2).sort_values(ascending=False))
+    print(f"\n📊 Avg NPS by Product:")
+    print(df.groupby('product')['nps_score'].mean().round(1).sort_values(ascending=False))
