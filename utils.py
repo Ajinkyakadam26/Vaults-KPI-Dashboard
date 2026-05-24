@@ -25,7 +25,7 @@ def run_query(query: str, df: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
-# ── Apply top filters and return filtered dataframe ────────
+# ── Apply filters and return filtered dataframe ────────────
 def apply_filters(df: pd.DataFrame,
                   products: list,
                   regions: list,
@@ -43,7 +43,7 @@ def apply_filters(df: pd.DataFrame,
     if channels:
         filtered = filtered[filtered['channel'].isin(channels)]
 
-    if date_range:
+    if date_range and len(date_range) == 2:
         filtered = filtered[
             (filtered['date'] >= pd.Timestamp(date_range[0])) &
             (filtered['date'] <= pd.Timestamp(date_range[1]))
@@ -52,41 +52,99 @@ def apply_filters(df: pd.DataFrame,
     return filtered
 
 
-# ── Render top filter bar (used on every page) ─────────────
+# ── Render top filter bar with dropdowns + Apply button ────
 def render_filters(df: pd.DataFrame):
 
-    col1, col2, col3, col4 = st.columns(4)
+    st.markdown("""
+        <style>
+            div[data-testid="stForm"] {
+                background: #FFFFFF;
+                border: 1px solid #E2E8F0;
+                border-radius: 12px;
+                padding: 16px 20px;
+            }
+            /* Filter labels */
+            div[data-testid="stForm"] label p {
+                color: #0F172A !important;
+                font-size: 13px !important;
+                font-weight: 600 !important;
+            }
+            /* Multiselect container */
+            div[data-testid="stForm"] .stMultiSelect [data-baseweb="select"] {
+                background-color: #F8FAFC !important;
+                border-color: #E2E8F0 !important;
+            }
+            /* Selected value pills */
+            div[data-testid="stForm"] .stMultiSelect span[data-baseweb="tag"] {
+                background-color: #EFF6FF !important;
+                border: 1px solid #BFDBFE !important;
+            }
+            /* Pill text */
+            div[data-testid="stForm"] .stMultiSelect span[data-baseweb="tag"] span {
+                color: #1D4ED8 !important;
+            }
+            /* X button on pill */
+            div[data-testid="stForm"] .stMultiSelect span[data-baseweb="tag"] button {
+                color: #1D4ED8 !important;
+                background: transparent !important;
+                margin-top: 0 !important;
+                width: auto !important;
+            }
+            /* Apply button */
+            div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
+                background-color: #3B82F6 !important;
+                color: white !important;
+                border-radius: 8px !important;
+                font-weight: 600 !important;
+                width: 100% !important;
+                margin-top: 22px !important;
+                border: none !important;
+            }
+        </style>
+    """, unsafe_allow_html=True)
 
-    with col1:
-        selected_products = st.multiselect(
-            '🛍️ Product',
-            options=sorted(df['product'].unique()),
-            default=sorted(df['product'].unique())
-        )
+    with st.form(key='filter_form'):
+        col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 1])
 
-    with col2:
-        selected_regions = st.multiselect(
-            '🌍 Region',
-            options=sorted(df['region'].unique()),
-            default=sorted(df['region'].unique())
-        )
+        with col1:
+            selected_products = st.multiselect(
+                '🛍️ Product',
+                options=sorted(df['product'].unique()),
+                default=sorted(df['product'].unique()),
+                placeholder='Select products...'
+            )
 
-    with col3:
-        selected_channels = st.multiselect(
-            '📡 Channel',
-            options=sorted(df['channel'].unique()),
-            default=sorted(df['channel'].unique())
-        )
+        with col2:
+            selected_regions = st.multiselect(
+                '🌍 Region',
+                options=sorted(df['region'].unique()),
+                default=sorted(df['region'].unique()),
+                placeholder='Select regions...'
+            )
 
-    with col4:
-        min_date = df['date'].min().date()
-        max_date = df['date'].max().date()
-        selected_dates = st.date_input(
-            '📅 Date Range',
-            value=(min_date, max_date),
-            min_value=min_date,
-            max_value=max_date
-        )
+        with col3:
+            selected_channels = st.multiselect(
+                '📡 Channel',
+                options=sorted(df['channel'].unique()),
+                default=sorted(df['channel'].unique()),
+                placeholder='Select channels...'
+            )
+
+        with col4:
+            min_date = df['date'].min().date()
+            max_date = df['date'].max().date()
+            selected_dates = st.date_input(
+                '📅 Date Range',
+                value=(min_date, max_date),
+                min_value=min_date,
+                max_value=max_date
+            )
+
+        with col5:
+            st.form_submit_button(
+                '✅ Apply',
+                use_container_width=True
+            )
 
     return selected_products, selected_regions, selected_channels, selected_dates
 
@@ -140,10 +198,10 @@ CHART_THEME = {
     'font_color':    '#0F172A',
     'grid_color':    '#E2E8F0',
     'accent_colors': [
-        '#3B82F6',  # blue
-        '#10B981',  # green
-        '#F59E0B',  # amber
-        '#EF4444',  # red
-        '#8B5CF6',  # purple
+        '#3B82F6',
+        '#10B981',
+        '#F59E0B',
+        '#EF4444',
+        '#8B5CF6',
     ]
 }
